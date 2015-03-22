@@ -1,0 +1,70 @@
+==========================
+MODEL
+==========================
+
+Random Forest 
+
+14718 samples
+   52 predictor
+    5 classes: 'A', 'B', 'C', 'D', 'E' 
+
+No pre-processing
+Resampling: Bootstrapped (25 reps) 
+
+Summary of sample sizes: 14718, 14718, 14718, 14718, 14718, 14718, ... 
+
+Resampling results across tuning parameters:
+
+  mtry  Accuracy   Kappa      Accuracy SD  Kappa SD   
+   2    0.9889786  0.9860568  0.002014449  0.002544549
+  27    0.9889561  0.9860292  0.001870441  0.002362583
+  52    0.9816681  0.9768073  0.003882172  0.004920248
+
+Accuracy was used to select the optimal model using  the largest value.
+The final value used for the model was mtry = 2. 
+
+
+
+
+###Confusion Matrix and Statistics
+-------------------------------------------------
+
+          Reference
+Prediction    A    B    C    D    E
+         A 1395    0    0    0    0
+         B    3  944    2    0    0
+         C    0    4  851    0    0
+         D    0    0   12  791    1
+         E    0    0    0    1  900
+
+Overall Statistics
+                                        
+               Accuracy : 0.9953        
+                 95% CI : (0.993, 0.997)
+    No Information Rate : 0.2851        
+    P-Value [Acc > NIR] : < 2.2e-16     
+                                        
+                  Kappa : 0.9941        
+ Mcnemar's Test P-Value : NA            
+
+Statistics by Class:
+
+                     Class: A Class: B Class: C Class: D Class: E
+Sensitivity            0.9979   0.9958   0.9838   0.9987   0.9989
+Specificity            1.0000   0.9987   0.9990   0.9968   0.9998
+Pos Pred Value         1.0000   0.9947   0.9953   0.9838   0.9989
+Neg Pred Value         0.9991   0.9990   0.9965   0.9998   0.9998
+Prevalence             0.2851   0.1933   0.1764   0.1615   0.1837
+Detection Rate         0.2845   0.1925   0.1735   0.1613   0.1835
+Detection Prevalence   0.2845   0.1935   0.1743   0.1639   0.1837
+Balanced Accuracy      0.9989   0.9973   0.9914   0.9978   0.9993
+————————————————————————
+
+
+
+
+###Result
+————————————————————————
+ [1] B A B A A E D B A A B C B A E E A B B B
+Levels: A B C D E
+————————————————————————
