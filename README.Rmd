@@ -1,0 +1,130 @@
+Readme
+---
+
+#Report: Activity Classifiction Project
+
+This is the R script markdown file for the Sports Classification Project in the Practical Machine Learning course.
+
+This project aims to predict action class (A to E, how well an individual performs heavy lifting) using data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. 
+
+The data used in this project is originally come from the work below:
+
+Ugulino, W.; Cardador, D.; Vega, K.; Velloso, E.; Milidiu, R.; Fuks, H. Wearable Computing: Accelerometers' Data Classification of Body Postures and Movements
+Read more: http://groupware.les.inf.puc-rio.br/har#ixzz3V9iZkomu
+
+Below included all R scripts used in the analysis. Please refer to the RESULT.txt file for details of the model and the confusion matrix. 
+
+
+## 1. Data preprocessing and clearning
+After loading the data and with some basic examination, we can see that the data set is not cleaned and contained a lot of "NA" values. All "NA" values occurred in the derived variables, such as "kurtosis_roll_belt" and "skewness_roll_belt". At this stage this values are not useful and hence can be ignored and deleted from the data set. 
+```{r,echo=TRUE}
+library(ggplot2)
+library(caret)
+library(e1071)
+#Loading Data
+data_train_raw <- read.csv("./Data/pml-training.csv",header=TRUE,na.string=c("NA","","#DIV/0!"))
+data_train_raw <- data_train_raw[,-1]
+dim(data_train_raw)
+#delete variables without any real values
+
+data_train <- data_train_raw[,-c(which(colSums(apply(data_train_raw,2,is.na))==nrow(data_train_raw)))]
+#summary(data_train)
+#dim(data_train)
+```
+The variables remain after data cleaning are shown below. Note that the variables related to the example ID such as user_name and time stamp are included. But these variables will not enter the model to reduce overfitting.  
+```{r,echo=TRUE}
+#Vnames_raw <- names(data_train)
+#summary(data_train[,Vnames_raw])
+
+# remove variables with NA data
+coln_NA <- which(colSums(apply(data_train,2,is.na))!=0)
+#summary(data_train[,coln_NA])
+
+data_train_noNA <- data_train[,-c(coln_NA)]
+data_train_noNA_names <- names(data_train_noNA)
+cat("Variables names included in the data set after data cleaning")
+data_train_noNA_names
+
+remove(data_train,data_train_raw)
+```
+##3. Variable selection
+Now examine the correlations between the predicted variable ("classe") with all other variables, exculding the identifier variables including user_names,timestamps and windows. The correlation is shown in the table below. 
+```{r,echo=TRUE}
+cat("Table 1. Correlations between action class and ")
+cor(data_train_noNA[,-c(1:6,59)],as.numeric(data_train_noNA[,59]))
+
+```
+and the variables selected are: 
+```{r,echo=TRUE}
+# Variables sets : correlations > 0.05
+selected_variables <-rownames(abs(cor(data_train_noNA[,-c(1:6,59)],as.numeric(data_train_noNA[,59])))>0.05)
+
+selected_variables
+```
+To see it more clearly, we order the selected variables in descending order of the absolute values of the calculated correlation and plot the classe against the first 3 selected variables. 
+```{r,echo=TRUE}
+cat("Figure 1: classe and variables")
+first3 <- order(abs(cor(data_train_noNA[,-c(1:6,59)],as.numeric(data_train_noNA[,59]))),decreasing=TRUE)[1:3]
+cat(selected_variables[[1]])
+plot(data_train_noNA[,selected_variables[first3[1]]]~data_train_noNA$classe,type="l")
+cat(selected_variables[[2]])
+plot(data_train_noNA[,selected_variables[first3[2]]]~data_train_noNA$classe,type="l")
+cat(selected_variables[[3]])
+plot(data_train_noNA[,selected_variables[first3[3]]]~data_train_noNA$classe,type="l")
+```
+##4. Data partition
+Then part the data into training 75% and testing data set. Out of sample error is expected to come from outliner data points and random noise. Cross validation is need to reduce the out of sample error. 
+
+```{r,echo=TRUE,eval=FALSE}
+
+data_train_selectfrom <- data_train_noNA[,-c(1:6)]
+
+usethisdata <- data_train_selectfrom[,c(selected_variables,"classe")]
+
+# Data partition to training and testing
+inTrain = createDataPartition(usethisdata$classe, p = 3/4)[[1]]
+training = usethisdata[ inTrain,]
+testing = usethisdata[-inTrain,]
+```
+##5. Random forest
+Then we try to solve the model with random forest on the training data then test the model with the testing data set. Details for the training model and confussion matrix, please refer to the Result.txt file.
+```{r,echo=TRUE,eval=FALSE}
+# Random Forest
+modelFit <- train(classe~.,method="rf",data=training,prox=TRUE)
+modelFit
+# featurePlot(x=use_data[,c(21:28)],y=classe_A,plot="pairs")
+testResult <- predict(modelFit,testing)
+confusionMatrix(testing$classe,testResult)
+```
+The accuracy is at 0.99 with 52 variables selected. Cross validation is performed with bootstrapping. 
+
+
+##6. Application on 20 testing cases
+We are happy with the performance of the model at this stage and hence implement the model on the 20 testing cases. Answers to the 20 testing cases shown below. 
+```{r,echo=TRUE,eval=FALSE}
+
+
+# load testing data
+
+#Loading Data
+data_test_raw <- read.csv("./Data/pml-testing.csv",header=TRUE,na.string=c("NA","","#DIV/0!"))
+data_test_raw <- data_test_raw[,-1]
+dim(data_test_raw)
+#delete variables without any real values
+
+data_test <- data_test_raw[,-c(which(colSums(apply(data_test_raw,2,is.na))==nrow(data_test_raw)))]
+summary(data_test)
+dim(data_test)
+
+testthisdata <- data_test[,c(selected_variables)]
+answers <- predict(modelFit,testthisdata)
+
+answers
+```
+
+
+#### Result
+
+ [1] B A B A A E D B A A B C B A E E A B B B
+Levels: A B C D E
+
